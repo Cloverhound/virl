@@ -1,95 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <topology xmlns="http://www.cisco.com/VIRL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="0.9" xsi:schemaLocation="http://www.cisco.com/VIRL https://raw.github.com/CiscoVIRL/schema/v0.9/virl.xsd">
-    <node name="nx-osv-1" type="SIMPLE" subtype="NX-OSv" location="232,133" ipv4="192.168.0.2">
-        <extensions>
-            <entry key="config" type="string">! NX-OSv Config generated on 2016-05-23 18:31
-! by autonetkit_0.20.9
-!
-version 6.2(1)
-license grace-period
-!
-hostname nx-osv-1
-vdc nx-osv-1 id 1
-  allocate interface Ethernet2/1-48
-  allocate interface Ethernet3/1-48
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 768
-  limit-resource u4route-mem minimum 96 maximum 96
-  limit-resource u6route-mem minimum 24 maximum 24
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature telnet
-
-feature ospf
-
-username adminbackup password 5 ! role network-operator
-username admin password 5 $1$KuOSBsvW$Cy0TSD..gEBGBPjzpDgf51 role network-admin
-username cisco password 5 $1$Nk7ZkwH0$fyiRmMMfIheqE3BqvcL0C1 role network-operator
-username cisco role network-admin
-username lab password 5 $1$buoy/oqy$.EXQz8rCn72ii8qtdldj00 role network-admin
-no password strength-check
-ip domain-lookup
-copp profile strict
-snmp-server user lab network-admin auth md5 0x5ceb414591539ee35159fca86fdfa101 priv 0x5ceb414591539ee35159fca86fdfa101 localizedkey
-snmp-server user admin network-admin auth md5 0x328945d53e05e8e7207f8c20b142f0b7 priv 0x328945d53e05e8e7207f8c20b142f0b7 localizedkey
-snmp-server user cisco network-operator auth md5 0x55b3c64a53fb95518e75358ee75e82e9 priv 0x55b3c64a53fb95518e75358ee75e82e9 localizedkey
-snmp-server user cisco network-admin
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-
-vlan 1
-
-vrf context management
-hardware forwarding unicast trace
-
-interface Loopback0
-  description Loopback
-  ip address 192.168.0.2/32
-  ip router ospf 1 area 0
-
-interface Ethernet2/1
-  description to server-1
-  ip address 10.0.0.5/30
-  ip router ospf 1 area 0
-  duplex full
-  mac-address fa16.3e00.0001
-  no shutdown
-
-interface Ethernet2/2
-  description to server-2
-  ip address 10.0.0.9/30
-  ip router ospf 1 area 0
-  duplex full
-  mac-address fa16.3e00.0002
-  no shutdown
-
-interface mgmt0
-  description OOB Management
-  ! Configured on launch
-  no ip address
-  duplex full
-  mac-address fa16.3e00.0003
-  no shutdown
-  vrf member management
-
-
-line console
-line vty
-router ospf 1
-  router-id 192.168.0.2
-        </entry>
-            <entry key="AutoNetkit.mgmt_ip" type="string"></entry>
-        </extensions>
-        <interface id="0" name="Ethernet2/1" ipv4="10.0.0.5" netPrefixLenV4="30"/>
-        <interface id="1" name="Ethernet2/2" ipv4="10.0.0.9" netPrefixLenV4="30"/>
-    </node>
-    <node name="server-1" type="SIMPLE" subtype="server" location="168,252">
+    <node name="server-1" type="SIMPLE" subtype="server" location="170,307" ipv4="192.168.100.4">
         <extensions>
             <entry key="config" type="string">#cloud-config
 bootcmd:
@@ -143,14 +54,16 @@ write_files:
   content: |-
     #!/bin/sh
     ifconfig eth1 up 10.0.0.6 netmask 255.255.255.252
-    route add -net 10.0.0.0/8 gw 10.0.0.5 dev eth1
-    route add -net 192.168.0.0/29 gw 10.0.0.5 dev eth1
+    route add -host 192.168.0.2 gw 10.0.0.5 dev eth1
+    route add -net 10.0.0.4/30 gw 10.0.0.5 dev eth1
+    route add -net 10.0.0.8/30 gw 10.0.0.5 dev eth1
     exit 0
 </entry>
+            <entry key="AutoNetkit.custom_config_phy_ints" type="String">10.10.10.100</entry>
         </extensions>
-        <interface id="0" name="eth1" ipv4="10.0.0.6" netPrefixLenV4="30"/>
+        <interface id="0" name="eth1"/>
     </node>
-    <node name="server-2" type="SIMPLE" subtype="server" location="307,255">
+    <node name="server-2" type="SIMPLE" subtype="server" location="365,314" ipv4="192.168.100.5">
         <extensions>
             <entry key="config" type="string">#cloud-config
 bootcmd:
@@ -204,13 +117,27 @@ write_files:
   content: |-
     #!/bin/sh
     ifconfig eth1 up 10.0.0.10 netmask 255.255.255.252
-    route add -net 10.0.0.0/8 gw 10.0.0.9 dev eth1
-    route add -net 192.168.0.0/29 gw 10.0.0.9 dev eth1
+    route add -host 192.168.0.2 gw 10.0.0.9 dev eth1
+    route add -net 10.0.0.4/30 gw 10.0.0.9 dev eth1
+    route add -net 10.0.0.8/30 gw 10.0.0.9 dev eth1
     exit 0
 </entry>
+            <entry key="AutoNetkit.custom_config_phy_ints" type="String">10.10.10.200</entry>
         </extensions>
-        <interface id="0" name="eth1" ipv4="10.0.0.10" netPrefixLenV4="30"/>
+        <interface id="0" name="eth1"/>
     </node>
-    <connection dst="/virl:topology/virl:node[1]/virl:interface[1]" src="/virl:topology/virl:node[2]/virl:interface[1]"/>
-    <connection dst="/virl:topology/virl:node[1]/virl:interface[2]" src="/virl:topology/virl:node[3]/virl:interface[1]"/>
+    <node name="router" type="SIMPLE" subtype="IOSv" location="280,67">
+        <extensions>
+            <entry key="AutoNetkit.custom_config_phy_ints" type="String">10.1.1.1</entry>
+        </extensions>
+        <interface id="0" name="GigabitEthernet0/1"/>
+    </node>
+    <node name="switch" type="SIMPLE" subtype="IOSvL2" location="275,209">
+        <interface id="0" name="GigabitEthernet0/1"/>
+        <interface id="1" name="GigabitEthernet0/2"/>
+        <interface id="2" name="GigabitEthernet0/3"/>
+    </node>
+    <connection dst="/virl:topology/virl:node[4]/virl:interface[1]" src="/virl:topology/virl:node[1]/virl:interface[1]"/>
+    <connection dst="/virl:topology/virl:node[4]/virl:interface[2]" src="/virl:topology/virl:node[2]/virl:interface[1]"/>
+    <connection dst="/virl:topology/virl:node[4]/virl:interface[3]" src="/virl:topology/virl:node[3]/virl:interface[1]"/>
 </topology>
